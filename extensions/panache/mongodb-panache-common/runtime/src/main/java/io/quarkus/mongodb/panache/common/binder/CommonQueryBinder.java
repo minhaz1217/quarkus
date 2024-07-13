@@ -63,6 +63,10 @@ final class CommonQueryBinder {
             ObjectId objectId = (ObjectId) value;
             return "ObjectId('" + objectId.toHexString() + "')";
         }
+        if (value.toString().startsWith("/")) {
+            return value.toString().replace("\\", "\\\\").replace("'", "\\'");
+        }
+
         return "'" + value.toString().replace("\\", "\\\\").replace("'", "\\'") + "'";
     }
 
