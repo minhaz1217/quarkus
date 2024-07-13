@@ -103,6 +103,10 @@ class MongoOperationsTest {
         // keywords (unquoted)
         query = operations.bindFilter(Object.class, "instant = ?1", new Object[] { "a value" });
         assertEquals("{'instant':'a value'}", query);
+
+        // value regex
+        query = operations.bindFilter(Object.class, "instant = ?1", new Object[] { "/a value/i" });
+        assertEquals("{'instant':/a value/i}", query);
     }
 
     private Object toDate(LocalDateTime of) {
@@ -162,6 +166,9 @@ class MongoOperationsTest {
                 new Object[] { list, true, "jpg", "gif" });
         assertEquals("{ field: { '$in': ['f1', 'f2'] }, isOk: true, $or: [ {'property': 'jpg'}, {'property': 'gif'} ] }",
                 query);
+
+        query = operations.bindFilter(DemoObj.class, "{ field: { '$in': [?1] } }", new Object[] { Arrays.asList("/f1/", "/f2/i") });
+        assertEquals("{ field: { '$in': [/f1/, /f2/i] } }", query);
     }
 
     @Test
@@ -226,6 +233,10 @@ class MongoOperationsTest {
                         .and("p2", "gif").map());
         assertEquals("{ field: { '$in': ['f1', 'f2'] }, isOk: true, $or: [ {'property': 'jpg'}, {'property': 'gif'} ] }",
                 query);
+
+        query = operations.bindFilter(DemoObj.class, "{ field: { '$in': [:fields] } }",
+                Parameters.with("fields", Arrays.asList("/f1/", "/f2/i")).map());
+        assertEquals("{ field: { '$in': [/f1/, /f2/i] } }", query);
     }
 
     @Test
@@ -301,6 +312,9 @@ class MongoOperationsTest {
                 "field in ?1 and isOk = ?2 and (property = ?3 or property = ?4)",
                 new Object[] { list, true, "jpg", "gif" });
         assertEquals("{'field':{'$in':['f1', 'f2']},'isOk':true,'$or':[{'value':'jpg'},{'value':'gif'}]}", query);
+
+        query = operations.bindFilter(DemoObj.class, "field in ?1", new Object[]{Arrays.asList("/f1/", "/f2/i")});
+        assertEquals("{'field':{'$in':[/f1/, /f2/i]}}", query);
     }
 
     @Test
@@ -380,6 +394,10 @@ class MongoOperationsTest {
                         .and("p1", "jpg")
                         .and("p2", "gif").map());
         assertEquals("{'field':{'$in':['f1', 'f2']},'isOk':true,'$or':[{'value':'jpg'},{'value':'gif'}]}", query);
+
+        query = operations.bindFilter(DemoObj.class, "field in :fields",
+                Parameters.with("fields", Arrays.asList("/f1/", "/f2/i")).map());
+        assertEquals("{'field':{'$in':[/f1/, /f2/i]}}", query);
     }
 
     @Test
